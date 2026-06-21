@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Онлайн-магазин</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eeebff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+            --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Dropdown Creation Menu */
+        .dropdown-container {
+            position: relative;
+        }
+
+        .btn-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-add:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-add svg {
+            transition: transform 0.2s ease;
+        }
+
+        .btn-add.active svg {
+            transform: rotate(45deg);
+        }
+
+        .create-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 340px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 24px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+        }
+
+        .create-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Layout */
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            min-height: calc(100vh - 70px);
+        }
+
+        .main {
+            padding: 32px 32px 48px;
+            min-width: 0;
+        }
+
+        .sidebar {
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-row-top {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-wrapper input {
+            width: 100%;
+            padding: 10px 12px 10px 40px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            background: #f8fafc;
+            color: var(--text);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-wrapper input:focus {
+            border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .filter-row-bottom {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 10px 36px 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 12px center;
+            background-size: 14px;
+            color: var(--text);
+            outline: none;
+            appearance: none;
+            cursor: pointer;
+            min-width: 160px;
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+
+        .filter-select:focus {
+            border-color: var(--primary);
+            background-color: var(--surface);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Products Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: #cbd5e1;
+        }
+
+        .card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .card-name {
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .badge {
+            flex-shrink: 0;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .badge-active { background: #e8f5e9; color: #2e7d32; }
+        .badge-sold   { background: #fce4ec; color: #c62828; }
+
+        .card-price {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text);
+        }
+
+        .card-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge-category {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 500;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .card-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+            flex: 1;
+        }
+
+        .card-footer {
+            display: flex;
+            gap: 8px;
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+        }
+
+        .btn-card {
+            flex: 1;
+            padding: 8px 0;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fafafa;
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .btn-card:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .btn-card.danger {
+            border-color: #ffd0cc;
+            color: #c0392b;
+            background: #fff5f5;
+        }
+        .btn-card.danger:hover {
+            background: #ffe0dd;
+            border-color: #fca5a5;
+        }
+
+        /* Forms */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: inherit;
+            background: #f8fafc;
+            color: var(--text);
+            outline: none;
+            transition: all 0.15s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-group textarea { resize: vertical; min-height: 70px; }
+
+        .form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+            margin-top: 4px;
+        }
+        .btn-submit:hover {
+            background: var(--primary-hover);
+        }
+
+        /* Sidebar Widgets */
+        .sidebar-widget {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 18px;
+        }
+
+        .stats-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .archive-pills {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .archive-pill {
+            font-size: 12px;
+            color: var(--text);
+            padding: 8px 12px;
+            background: #f1f5f9;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .empty {
+            color: var(--text-muted);
+            font-size: 13px;
+            text-align: center;
+            padding: 12px 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar {
+                border-left: none;
+                border-top: 1px solid var(--border);
+                padding: 32px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header { padding: 0 16px; }
+            .main { padding: 24px 16px 40px; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary)"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        Магазин
+    </h1>
+
+    <div class="dropdown-container" id="create-dropdown-container">
+        <button class="btn-add" id="btn-toggle-create" onclick="toggleCreateDropdown(event)">
+            <svg id="plus-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Добавить товар
+        </button>
+        <div class="create-dropdown" id="create-dropdown">
+            <p class="section-label" style="margin-bottom: 12px;">Новый товар</p>
+            <div class="form-fields">
+                <div class="form-group">
+                    <label>Название</label>
+                    <input type="text" id="f-name" placeholder="Название товара">
+                </div>
+                <div class="form-group">
+                    <label>Цена, ₽</label>
+                    <input type="number" id="f-price" placeholder="0" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Количество</label>
+                    <input type="number" id="f-quantity" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Категория</label>
+                    <select id="f-category">
+                        <option value="">— выберите —</option>
+                        <option value="Электроника">Электроника</option>
+                        <option value="Аудио">Аудио</option>
+                        <option value="Одежда">Одежда</option>
+                        <option value="Бытовая техника">Бытовая техника</option>
+                        <option value="Спорт">Спорт</option>
+                        <option value="Другое">Другое</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Описание</label>
+                    <textarea id="f-desc" placeholder="Краткое описание"></textarea>
+                </div>
+                <button class="btn-submit" onclick="createProduct()">Создать</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="layout">
+    <div class="main">
+        <!-- Панель фильтров -->
+        <div class="filter-bar">
+            <div class="filter-row-top">
+                <div class="search-wrapper">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="filter-search" placeholder="Поиск товаров по названию и описанию..." oninput="applyFilters()">
+                </div>
+            </div>
+            <div class="filter-row-bottom">
+                <select class="filter-select" id="filter-category" onchange="applyFilters()">
+                    <option value="">Все категории</option>
+                    <option value="Электроника">Электроника</option>
+                    <option value="Аудио">Аудио</option>
+                    <option value="Одежда">Одежда</option>
+                    <option value="Бытовая техника">Бытовая техника</option>
+                    <option value="Спорт">Спорт</option>
+                    <option value="Другое">Другое</option>
+                </select>
+
+                <select class="filter-select" id="filter-status" onchange="applyFilters()">
+                    <option value="all">Все статусы</option>
+                    <option value="active">В наличии</option>
+                    <option value="sold_out">Нет в наличии</option>
+                </select>
+
+                <select class="filter-select" id="filter-sort" onchange="applyFilters()">
+                    <option value="default">Сортировка: По умолчанию</option>
+                    <option value="price-asc">Цена: По возрастанию</option>
+                    <option value="price-desc">Цена: По убыванию</option>
+                    <option value="name-asc">Название: А-Я</option>
+                </select>
+            </div>
+        </div>
+
+        <p class="section-label">Товары</p>
+        <div id="products-list" class="grid"></div>
+    </div>
+
+    <div class="sidebar">
+        <!-- Виджет статистики -->
+        <div class="sidebar-widget">
+            <p class="section-label" style="margin-bottom: 12px;">Статистика каталога</p>
+            <div class="stats-list">
+                <div class="stat-item">
+                    <span class="stat-label">Всего активных:</span>
+                    <span class="stat-value" id="stat-total">0 шт.</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Общая стоимость:</span>
+                    <span class="stat-value" id="stat-value">0 ₽</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Нет в наличии:</span>
+                    <span class="stat-value" id="stat-out-of-stock">0 шт.</span>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <p class="section-label">Архив</p>
+            <div class="archive-pills" id="archive-list"></div>
+            <p class="empty" id="archive-empty">Пусто</p>
+        </div>
+    </div>
+</div>
+
+<footer>Курсовая работа · Разработка веб-приложений · 2025–2026</footer>
+
+<script>
+    const API = 'http://localhost:8080/api/products';
+    let allProducts = [];
+
+    // Toggles dropdown visibility
+    function toggleCreateDropdown(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('create-dropdown');
+        const btn = document.getElementById('btn-toggle-create');
+        dropdown.classList.toggle('show');
+        btn.classList.toggle('active');
+        if (dropdown.classList.contains('show')) {
+            document.getElementById('f-name').focus();
+        }
+    }
+
+    // Close dropdown on click outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('create-dropdown');
+        const btn = document.getElementById('btn-toggle-create');
+        const container = document.getElementById('create-dropdown-container');
+        if (dropdown.classList.contains('show') && !container.contains(event.target)) {
+            dropdown.classList.remove('show');
+            btn.classList.remove('active');
+        }
+    });
+
+    async function loadProducts() {
+        try {
+            const res = await fetch(API);
+            allProducts = await res.json();
+            applyFilters();
+        } catch (e) {
+            document.getElementById('products-list').innerHTML = '<p class="empty" style="grid-column:1/-1">Не удалось подключиться к серверу.</p>';
+        }
+    }
+
+    function applyFilters() {
+        const searchVal = document.getElementById('filter-search').value.toLowerCase().trim();
+        const categoryVal = document.getElementById('filter-category').value;
+        const statusVal = document.getElementById('filter-status').value;
+        const sortVal = document.getElementById('filter-sort').value;
+
+        // Separate active vs archived
+        let active = allProducts.filter(p => p.status === 'active' || p.status === 'sold_out');
+        const archived = allProducts.filter(p => p.status === 'archived');
+
+        // Apply filters to active products
+        if (searchVal) {
+            active = active.filter(p => 
+                p.name.toLowerCase().includes(searchVal) || 
+                (p.description && p.description.toLowerCase().includes(searchVal))
+            );
+        }
+
+        if (categoryVal) {
+            active = active.filter(p => p.category === categoryVal);
+        }
+
+        if (statusVal === 'active') {
+            active = active.filter(p => p.status === 'active');
+        } else if (statusVal === 'sold_out') {
+            active = active.filter(p => p.status === 'sold_out');
+        }
+
+        // Apply sorting
+        if (sortVal === 'price-asc') {
+            active.sort((a, b) => a.price - b.price);
+        } else if (sortVal === 'price-desc') {
+            active.sort((a, b) => b.price - a.price);
+        } else if (sortVal === 'name-asc') {
+            active.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+        }
+
+        renderProductsList(active);
+        renderArchiveList(archived);
+        updateStatistics();
+    }
+
+    function renderProductsList(active) {
+        const list = document.getElementById('products-list');
+
+        if (active.length === 0) {
+            list.innerHTML = '<p class="empty" style="grid-column:1/-1">Нет подходящих товаров</p>';
+        } else {
+            list.innerHTML = active.map(p => `
+                <div class="card">
+                    <div class="card-top">
+                        <div class="card-name">${p.name}</div>
+                        ${p.status === 'sold_out'
+                            ? '<span class="badge badge-sold">Нет в наличии</span>'
+                            : '<span class="badge badge-active">В наличии</span>'}
+                    </div>
+                    <div class="card-price">${p.price.toLocaleString('ru-RU')} ₽</div>
+                    <div class="card-meta">
+                        <span class="badge-category">${p.category}</span>
+                        <span>${p.quantity} шт.</span>
+                    </div>
+                    <div class="card-desc">${p.description}</div>
+                    <div class="card-footer">
+                        <button class="btn-card" onclick="archiveProduct(${p.id})">В архив</button>
+                        <button class="btn-card danger" onclick="deleteProduct(${p.id})">Удалить</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    function renderArchiveList(archived) {
+        const archiveList = document.getElementById('archive-list');
+        const archiveEmpty = document.getElementById('archive-empty');
+
+        if (archived.length === 0) {
+            archiveList.innerHTML = '';
+            archiveEmpty.style.display = 'block';
+        } else {
+            archiveEmpty.style.display = 'none';
+            archiveList.innerHTML = archived.map(p => `<div class="archive-pill">${p.name}</div>`).join('');
+        }
+    }
+
+    function updateStatistics() {
+        // Calculate catalog stats on overall active products (unfiltered)
+        const activeList = allProducts.filter(p => p.status === 'active' || p.status === 'sold_out');
+        const total = activeList.length;
+        const totalValue = activeList.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+        const outOfStock = activeList.filter(p => p.status === 'sold_out' || p.quantity === 0).length;
+
+        document.getElementById('stat-total').textContent = `${total} шт.`;
+        document.getElementById('stat-value').textContent = `${totalValue.toLocaleString('ru-RU')} ₽`;
+        document.getElementById('stat-out-of-stock').textContent = `${outOfStock} шт.`;
+    }
+
+    async function createProduct() {
+        const name = document.getElementById('f-name').value.trim();
+        const price = parseFloat(document.getElementById('f-price').value);
+        const quantity = parseInt(document.getElementById('f-quantity').value);
+        const category = document.getElementById('f-category').value;
+        const description = document.getElementById('f-desc').value.trim();
+
+        if (!name || isNaN(price) || isNaN(quantity) || !category || !description) {
+            alert('Заполните все поля.');
+            return;
+        }
+
+        try {
+            await fetch(API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, price, quantity, category, description })
+            });
+            // Clear inputs
+            ['f-name','f-price','f-quantity','f-desc'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('f-category').value = '';
+            
+            // Hide dropdown
+            document.getElementById('create-dropdown').classList.remove('show');
+            document.getElementById('btn-toggle-create').classList.remove('active');
+
+            loadProducts();
+        } catch (e) {
+            alert('Ошибка при создании товара.');
+        }
+    }
+
+    async function deleteProduct(id) {
+        if (!confirm('Вы уверены, что хотите удалить товар?')) return;
+        try {
+            await fetch(`${API}/${id}`, { method: 'DELETE' });
+            loadProducts();
+        } catch (e) {
+            alert('Ошибка при удалении.');
+        }
+    }
+
+    async function archiveProduct(id) {
+        try {
+            await fetch(`${API}/${id}/archive`, { method: 'PATCH' });
+            loadProducts();
+        } catch (e) {
+            alert('Ошибка при архивировании.');
+        }
+    }
+
+    loadProducts();
+</script>
+
+</body>
+</html>
